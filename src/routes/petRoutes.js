@@ -120,6 +120,11 @@ router.delete('/:id', auth, petController.deletePet);
 // @access  Private
 router.post('/:id/avatar', auth, uploadPetPhoto('avatar'), petController.uploadPetAvatar);
 
+// @route   POST /api/pets/:id/avatar/base64
+// @desc    Upload pet avatar as Base64 string
+// @access  Private
+router.post('/:id/avatar/base64', auth, petController.uploadPetAvatarBase64);
+
 // @route   POST /api/pets/:id/daily-photo
 // @desc    Upload pet daily photo
 // @access  Private

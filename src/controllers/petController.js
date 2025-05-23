@@ -230,6 +230,68 @@ exports.uploadPetAvatar = async (req, res) => {
 };
 
 /**
+ * @desc    Upload pet avatar as Base64 string
+ * @route   POST /api/pets/:id/avatar/base64
+ * @access  Private
+ */
+exports.uploadPetAvatarBase64 = async (req, res) => {
+  try {
+    const { image } = req.body;
+    const petId = req.params.id;
+
+    if (!image) {
+      return res.status(400).json({ message: 'No image data provided' });
+    }
+
+    // Basic Base64 validation
+    const base64Regex = /^data:image\/([a-zA-Z]+);base64,([\s\S]+)/;
+    const matches = image.match(base64Regex);
+
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ message: 'Invalid Base64 image format' });
+    }
+
+    const imageType = matches[1]; // e.g., png, jpeg
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const pet = await Pet.findById(petId);
+    if (!pet) {
+      return res.status(404).json({ message: 'Pet not found' });
+    }
+
+    if (pet.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to update this pet' });
+    }
+
+    const uploadDir = path.join(__dirname, '../../uploads/pets');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filename = `pet-${Date.now()}-${Math.round(Math.random() * 1E9)}.${imageType}`;
+    const filePath = path.join(uploadDir, filename);
+
+    fs.writeFileSync(filePath, buffer);
+
+    const avatarUrl = `/uploads/pets/${filename}`;
+    pet.avatar = avatarUrl;
+    await pet.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        pet
+      }
+    });
+
+  } catch (error) {
+    console.error('Upload pet avatar (Base64) error:', error);
+    res.status(500).json({ message: 'Server error while uploading Base64 avatar', error: error.message });
+  }
+};
+
+/**
  * @desc    Get pets by user ID
  * @route   GET /api/pets/user/:userId
  * @access  Public
