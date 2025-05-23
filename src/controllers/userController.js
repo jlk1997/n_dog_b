@@ -289,6 +289,7 @@ exports.uploadAvatar = async (req, res) => {
  * @access  Public
  */
 exports.getUserById = async (req, res) => {
+  console.log(`[userController.getUserById] Received request for user ID: "${req.params.id}", Original URL: "${req.originalUrl}"`);
   try {
     const user = await User.findById(req.params.id).select('-password -email');
 
