@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(`[Admin Login Attempt] Received username: "${username}", Received password: "${password ? '******' : 'undefined'}"`); // Log received credentials
     
     // 验证请求
     if (!username || !password) {
@@ -19,16 +20,19 @@ exports.login = async (req, res) => {
       });
     }
     
-    // 查找管理员
+    // 查找管理员，并确保包含密码字段以进行比较
     const admin = await Admin.findOne({ username }).select('+password');
     
     if (!admin) {
+      console.log(`[Admin Login Failed] Admin not found for username: "${username}"`);
       return res.status(401).json({
         success: false,
         message: '用户名或密码错误',
         code: 401
       });
     }
+    
+    console.log(`[Admin Login Attempt] Admin found in DB: ${admin.username}, DB Hashed Password: ${admin.password}`); // Log DB user and hash
     
     // 检查账户是否被锁定
     if (admin.isLocked()) {
@@ -40,12 +44,14 @@ exports.login = async (req, res) => {
       });
     }
     
-    // 检查密码是否匹配
+    // 比较密码
     const isMatch = await admin.comparePassword(password);
+    console.log(`[Admin Login Attempt] Password comparison result for "${username}": ${isMatch}`); // Log comparison result
     
     if (!isMatch) {
       // 增加失败尝试计数
       await admin.incrementLoginAttempts();
+      console.log(`[Admin Login Failed] Password mismatch for username: "${username}". Attempts: ${admin.loginAttempts}, Locked: ${admin.isLocked()}`);
       
       return res.status(401).json({
         success: false,

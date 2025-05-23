@@ -316,7 +316,7 @@ adminApp.use((err, req, res, next) => {
 
 // Connect to MongoDB and start server
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/dogrun', {
+  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/liuchongpai', {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
