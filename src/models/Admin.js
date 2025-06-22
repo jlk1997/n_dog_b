@@ -116,7 +116,7 @@ AdminSchema.methods.comparePassword = async function(candidatePassword) {
 AdminSchema.methods.getSignedJwtToken = function() {
   return jwt.sign(
     { id: this._id, username: this.username, role: this.role },
-    process.env.JWT_SECRET_ADMIN || 'admin-secret-key',
+    process.env._ADMIN || 'admin-secret-key',
     { expiresIn: process.env.JWT_EXPIRE_ADMIN || '24h' }
   );
 };
